@@ -1,0 +1,22 @@
+{
+  "name": "quickstart-mobile-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "grant-express": "^4.2.2",
+    "square-connect": "^2.20181205.0",
+    "body-parser": "^1.18.3"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

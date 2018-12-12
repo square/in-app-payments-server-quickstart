@@ -1,0 +1,13 @@
+{
+  "name": "Square Mobile Backend Server",
+  "description": "An example mobile backend server for Square In-App Payments",
+  "env": {
+    "ACCESS_TOKEN": {
+      "description": "Your \"Access Token\" or \"Personal Access Token\" which can be found on your Square Application Dashboard [https://connect.squareup.com/apps/]. You can process payments by POSTing to the /chargeForCookie path with your payment nonce as the value on the nonce key for a JSON body",
+      "required": true
+    }
+  },
+  "scripts": {
+    "postdeploy": "npm install"
+  }
+}
