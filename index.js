@@ -60,6 +60,10 @@ app.post('/chargeForCookie', async (request, response) => {
     const errorMessages = (JSON.parse(e.response.text)).errors;
 
     switch(errorMessages[0].code) {
+        case "CARD_DECLINED":
+          response.status(400).send({
+              errorMessage: "Card declined. Please re-enter card information."
+          })
         case "VERIFY_CVV_FAILURE":
           response.status(400).send({
               errorMessage: "Invalid CVV. Please re-enter card information."
