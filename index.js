@@ -79,7 +79,6 @@ app.post('/chargeForCookie', async (request, response) => {
           response.status(400).send({
               errorMessage: "Invalid expiration date. Please re-enter card information."
             })
-              errorMessage: "Card declined."
           })
           break;
         case "CARD_TOKEN_USED":
