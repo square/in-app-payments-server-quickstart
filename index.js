@@ -20,11 +20,11 @@ const transactionsApi = new TransactionsApi();
 const ordersApi = new OrdersApi();
 const locationsApi = new LocationsApi();
 
-
 app.post('/chargeForCookie', async (request, response) => {
   const requestBody = request.body;
   const locations = await locationsApi.listLocations();
-  const order = await ordersApi.createOrder(locations.locations[0].id, {
+  const locationId = locations.locations[0].id;
+  const order = await ordersApi.createOrder(locationId, {
     idempotency_key: crypto.randomBytes(12).toString('hex'),
     merchant_id: locations.locations[0].merchant_id,
     line_items: [
@@ -43,47 +43,53 @@ app.post('/chargeForCookie', async (request, response) => {
       "idempotency_key": crypto.randomBytes(12).toString('hex'),
       "card_nonce": requestBody.nonce,
       "amount_money": {
-        "amount": order.order.total_money.amount,
-        "currency": 'USD'
+        ...order.order.total_money,
       },
       "order_id": order.order.id
     };
-    const transaction = await transactionsApi.charge(locations.locations[0].id, chargeBody);
+    const transaction = await transactionsApi.charge(locationId, chargeBody);
     console.log(transaction.transaction);
 
     response.status(200).json(transaction.transaction);
   } catch (e) {
     delete e.response.req.headers;
     delete e.response.req._headers;
-    console.log(`[Error]:\nStatus:${e.status}\nMessages:${JSON.stringify((JSON.parse(e.response.text)).errors, null, 2)}`);
+    console.log(
+      `[Error] Status:${e.status}, Messages: ${JSON.stringify((JSON.parse(e.response.text)).errors, null, 2)}`);
 
-    const errorMessages = (JSON.parse(e.response.text)).errors;
+    const { errors } = (JSON.parse(e.response.text));
 
-    switch(errorMessages[0].code) {
+    switch(errors[0].code) {
         case "CARD_DECLINED":
           response.status(400).send({
               errorMessage: "Card declined. Please re-enter card information."
           })
+          break;
         case "VERIFY_CVV_FAILURE":
           response.status(400).send({
               errorMessage: "Invalid CVV. Please re-enter card information."
           })
+          break;
         case "VERIFY_AVS_FAILURE":
           response.status(400).send({
               errorMessage: "Invalid Postal Code. Please re-enter card information."
           })
+          break;
         case "INVALID_EXPIRATION":
           response.status(400).send({
               errorMessage: "Card declined."
-            })
+          })
+          break;
         case "CARD_TOKEN_USED":
           response.status(400).send({
               errorMessage: "Card token already used; Please try re-entering card details."
           })
+          break;
         default:
           response.status(400).send({
               errorMessage: "Payment error. Please contact support if issue persists."
           })
+          break;
     }
   }
 });
