@@ -1,6 +1,6 @@
 # In-App Payments Server Quickstart
 
-This is an example server with a single endpoint of `/chargeForCooke` for processing payments using Square. The server expects a `POST` request with a payload of `application/json` following the format:
+This is an example server with a single endpoint of `/chargeForCookie` for processing payments using Square. The server expects a `POST` request with a payload of `application/json` following the format:
 ```
 {
   "nonce": "INSERT_YOUR_NONCE_HERE"
