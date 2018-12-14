@@ -29,7 +29,7 @@ app.post('/chargeForCookie', async (request, response) => {
     merchant_id: locations.locations[0].merchant_id,
     line_items: [
       {
-        name: "Cookie",
+        name: "Cookie 🍪",
         quantity: "1",
         base_price_money: {
           amount: 100,
