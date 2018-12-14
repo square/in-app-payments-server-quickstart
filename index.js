@@ -85,6 +85,11 @@ app.post('/chargeForCookie', async (request, response) => {
               errorMessage: "Card token already used; Please try re-entering card details."
           })
           break;
+        case "INVALID_CARD":
+          response.status(400).send({
+              errorMessage: "Invalid card number; Please try re-entering card details."
+          })
+          break;
         default:
           response.status(400).send({
               errorMessage: "Payment error. Please contact support if issue persists."
