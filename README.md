@@ -11,7 +11,7 @@ This is an example server with a single endpoint of `/chargeForCookie` for proce
 
 ## Instructions
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mootrichard/quickstart-mobile-backend/tree/master)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/square/quickstart-mobile-backend/tree/master)
 
 * Click the **Deploy to Heroku** button
 * Login or create a Heroku account
