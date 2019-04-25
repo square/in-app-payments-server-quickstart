@@ -24,20 +24,25 @@ app.post('/chargeForCookie', async (request, response) => {
   const requestBody = request.body;
   const locations = await locationsApi.listLocations();
   const locationId = locations.locations[0].id;
-  const order = await ordersApi.createOrder(locationId, {
+
+  const createOrderRequest = {
     idempotency_key: crypto.randomBytes(12).toString('hex'),
-    merchant_id: locations.locations[0].merchant_id,
-    line_items: [
-      {
-        name: "Cookie 🍪",
-        quantity: "1",
-        base_price_money: {
-          amount: 100,
-          currency: "USD"
+    order: {
+      line_items: [
+        {
+          name: "Cookie 🍪",
+          quantity: "1",
+          base_price_money: {
+            amount: 100,
+            currency: "USD"
+          }
         }
-      }
-    ]
-  });
+      ]
+    }
+  }
+
+  const order = await ordersApi.createOrder(locationId, createOrderRequest);
+
   try {
     const chargeBody = {
       "idempotency_key": crypto.randomBytes(12).toString('hex'),
