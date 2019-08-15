@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const SquareConnect = require('square-connect');
 const {
-  TransactionsApi,
+  PaymentsApi,
   OrdersApi,
   LocationsApi
 } = require('square-connect');
@@ -16,46 +16,52 @@ app.use(bodyParser.json());
 let oauth2 = defaultClient.authentications['oauth2'];
 oauth2.accessToken = process.env.ACCESS_TOKEN;
 
-const transactionsApi = new TransactionsApi();
+// Use API_BASE_PATH to switch between sandbox env and production env
+// sandbox: https://connect.squareupsandbox.com
+// production: https://connect.squareup.com
+defaultClient.basePath = process.env.API_BASE_PATH;
+
+const paymentsApi = new PaymentsApi();
 const ordersApi = new OrdersApi();
 const locationsApi = new LocationsApi();
 
 app.post('/chargeForCookie', async (request, response) => {
   const requestBody = request.body;
-  const locations = await locationsApi.listLocations();
-  const locationId = locations.locations[0].id;
-
-  const createOrderRequest = {
-    idempotency_key: crypto.randomBytes(12).toString('hex'),
-    order: {
-      line_items: [
-        {
-          name: "Cookie 🍪",
-          quantity: "1",
-          base_price_money: {
-            amount: 100,
-            currency: "USD"
-          }
-        }
-      ]
-    }
-  }
-
-  const order = await ordersApi.createOrder(locationId, createOrderRequest);
 
   try {
-    const chargeBody = {
+    const locations = await locationsApi.listLocations();
+    const locationId = locations.locations[0].id;
+
+    const createOrderRequest = {
+      idempotency_key: crypto.randomBytes(12).toString('hex'),
+      order: {
+        line_items: [
+          {
+            name: "Cookie 🍪",
+            quantity: "1",
+            base_price_money: {
+              amount: 100,
+              currency: "USD"
+            }
+          }
+        ]
+      }
+    }
+    const order = await ordersApi.createOrder(locationId, createOrderRequest);
+
+    const createPaymentRequest = {
       "idempotency_key": crypto.randomBytes(12).toString('hex'),
-      "card_nonce": requestBody.nonce,
+      "source_id": requestBody.nonce,
       "amount_money": {
         ...order.order.total_money,
       },
-      "order_id": order.order.id
+      "order_id": order.order.id,
+      "autocomplete": true,
     };
-    const transaction = await transactionsApi.charge(locationId, chargeBody);
-    console.log(transaction.transaction);
+    const createPaymentResponse = await paymentsApi.createPayment(createPaymentRequest);
+    console.log(createPaymentResponse.payment);
 
-    response.status(200).json(transaction.transaction);
+    response.status(200).json(createPaymentResponse.payment);
   } catch (e) {
     delete e.response.req.headers;
     delete e.response.req._headers;
@@ -65,40 +71,55 @@ app.post('/chargeForCookie', async (request, response) => {
     const { errors } = (JSON.parse(e.response.text));
 
     switch(errors[0].code) {
-        case "CARD_DECLINED":
+        case "UNAUTHORIZED":
+          response.status(401).send({
+              errorMessage: "Server Not Authorized. Please check your server permission."
+          });
+          break;
+        case "GENERIC_DECLINE":
           response.status(400).send({
               errorMessage: "Card declined. Please re-enter card information."
-          })
+          });
           break;
-        case "VERIFY_CVV_FAILURE":
+        case "CVV_FAILURE":
           response.status(400).send({
               errorMessage: "Invalid CVV. Please re-enter card information."
-          })
+          });
           break;
-        case "VERIFY_AVS_FAILURE":
+        case "ADDRESS_VERIFICATION_FAILURE":
           response.status(400).send({
               errorMessage: "Invalid Postal Code. Please re-enter card information."
-          })
+          });
           break;
-        case "INVALID_EXPIRATION":
+        case "EXPIRATION_FAILURE":
           response.status(400).send({
               errorMessage: "Invalid expiration date. Please re-enter card information."
-          })
+          });
           break;
-        case "CARD_TOKEN_USED":
+        case "INSUFFICIENT_FUNDS":
           response.status(400).send({
-              errorMessage: "Card token already used; Please try re-entering card details."
-          })
+              errorMessage: "Insufficient funds; Please try re-entering card details."
+          });
           break;
-        case "INVALID_CARD":
+        case "CARD_NOT_SUPPORTED":
           response.status(400).send({
-              errorMessage: "Invalid card number; Please try re-entering card details."
-          })
+              errorMessage: "	The card is not supported either in the geographic region or by the MCC; Please try re-entering card details."
+          });
+          break;
+        case "PAYMENT_LIMIT_EXCEEDED":
+          response.status(400).send({
+              errorMessage: "Processing limit for this merchant; Please try re-entering card details."
+          });
+          break;
+        case "TEMPORARY_ERROR":
+          response.status(500).send({
+              errorMessage: "Unknown temporary error; please try again;"
+          });
           break;
         default:
           response.status(400).send({
               errorMessage: "Payment error. Please contact support if issue persists."
-          })
+          });
           break;
     }
   }
