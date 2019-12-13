@@ -30,26 +30,11 @@ const customersApi = new CustomersApi();
 
 app.post('/chargeForCookie', async (request, response) => {
   const requestBody = request.body;
+  const createOrderRequest = getOrderRequest();
 
   try {
     const locations = await locationsApi.listLocations();
     const locationId = locations.locations[0].id;
-
-    const createOrderRequest = {
-      idempotency_key: crypto.randomBytes(12).toString('hex'),
-      order: {
-        line_items: [
-          {
-            name: "Cookie 🍪",
-            quantity: "1",
-            base_price_money: {
-              amount: 100,
-              currency: "USD"
-            }
-          }
-        ]
-      }
-    }
     const order = await ordersApi.createOrder(locationId, createOrderRequest);
 
     const createPaymentRequest = {
@@ -78,15 +63,13 @@ app.post('/chargeForCookie', async (request, response) => {
 
 app.post('/chargeCustomerCard', async (request, response) => {
   const requestBody = request.body;
-  const locations = await locationsApi.listLocations();
-  const locationId = locations.locations[0].id;
-
   const createOrderRequest = getOrderRequest();
 
-  const order = await ordersApi.createOrder(locationId, createOrderRequest);
-
   try {
-    const chargeBody = {
+    const locations = await locationsApi.listLocations();
+    const locationId = locations.locations[0].id;
+    const order = await ordersApi.createOrder(locationId, createOrderRequest);
+    const createPaymentRequest = {
       "idempotency_key": crypto.randomBytes(12).toString('hex'),
       "customer_id": requestBody.customer_id,
       "source_id": requestBody.customer_card_id,
@@ -95,7 +78,7 @@ app.post('/chargeCustomerCard', async (request, response) => {
       },
       "order_id": order.order.id
     };
-    const payment = await paymentsApi.createPayment(chargeBody);
+    const payment = await paymentsApi.createPayment(createPaymentRequest);
     console.log(payment.payment);
 
     response.status(200).json(payment.payment);
@@ -151,40 +134,55 @@ function getOrderRequest() {
 
 function sendErrorMessage(errors, response) {
   switch (errors[0].code) {
-    case "CARD_DECLINED":
-      response.status(400).send({
-        errorMessage: "Card declined. Please re-enter card information."
-      })
+    case "UNAUTHORIZED":
+      response.status(401).send({
+          errorMessage: "Server Not Authorized. Please check your server permission."
+      });
       break;
-    case "VERIFY_CVV_FAILURE":
+    case "GENERIC_DECLINE":
       response.status(400).send({
-        errorMessage: "Invalid CVV. Please re-enter card information."
-      })
+          errorMessage: "Card declined. Please re-enter card information."
+      });
       break;
-    case "VERIFY_AVS_FAILURE":
+    case "CVV_FAILURE":
       response.status(400).send({
-        errorMessage: "Invalid Postal Code. Please re-enter card information."
-      })
+          errorMessage: "Invalid CVV. Please re-enter card information."
+      });
       break;
-    case "INVALID_EXPIRATION":
+    case "ADDRESS_VERIFICATION_FAILURE":
       response.status(400).send({
-        errorMessage: "Invalid expiration date. Please re-enter card information."
-      })
+          errorMessage: "Invalid Postal Code. Please re-enter card information."
+      });
       break;
-    case "CARD_TOKEN_USED":
+    case "EXPIRATION_FAILURE":
       response.status(400).send({
-        errorMessage: "Card token already used; Please try re-entering card details."
-      })
+          errorMessage: "Invalid expiration date. Please re-enter card information."
+      });
       break;
-    case "INVALID_CARD":
+    case "INSUFFICIENT_FUNDS":
       response.status(400).send({
-        errorMessage: "Invalid card number; Please try re-entering card details."
-      })
+          errorMessage: "Insufficient funds; Please try re-entering card details."
+      });
+      break;
+    case "CARD_NOT_SUPPORTED":
+      response.status(400).send({
+          errorMessage: "	The card is not supported either in the geographic region or by the MCC; Please try re-entering card details."
+      });
+      break;
+    case "PAYMENT_LIMIT_EXCEEDED":
+      response.status(400).send({
+          errorMessage: "Processing limit for this merchant; Please try re-entering card details."
+      });
+      break;
+    case "TEMPORARY_ERROR":
+      response.status(500).send({
+          errorMessage: "Unknown temporary error; please try again;"
+      });
       break;
     default:
       response.status(400).send({
-        errorMessage: "Payment error. Please contact support if issue persists."
-      })
+          errorMessage: "Payment error. Please contact support if issue persists."
+      });
       break;
   }
 }
