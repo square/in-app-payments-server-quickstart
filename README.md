@@ -7,7 +7,7 @@ This is an example server with a single endpoint of `/chargeForCookie` for proce
 }
 ```
 
-*Please replace "INSERT_YOUR_NONCE_HERE" with your own nonce this was generated from either the Square Payment Form or the In-App Payments SDK.*
+*Please replace "INSERT_YOUR_NONCE_HERE" with your own nonce that was generated from either the Square Payment Form or the In-App Payments SDK.*
 
 ## Instructions
 
