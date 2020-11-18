@@ -10,7 +10,7 @@
   "dependencies": {
     "express": "^4.16.4",
     "grant-express": "^4.2.2",
-    "square-connect": "2.20190814.0",
+    "square": "7.0.0",
     "body-parser": "^1.18.3"
   },
   "engines": {

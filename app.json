@@ -3,11 +3,11 @@
   "description": "An example mobile backend server for Square In-App Payments",
   "env": {
     "ACCESS_TOKEN": {
-      "description": "Your \"Access Token\" or \"Personal Access Token\" which can be found on your Square Application Dashboard [https://connect.squareup.com/apps/]. You can process payments by POSTing to the /chargeForCookie path with your payment nonce as the value on the nonce key for a JSON body",
+      "description": "Your \"Access Token\" or \"Personal Access Token\" which can be found on your Square Application Dashboard [https://developer.squareup.com/apps/]. You can process payments by POSTing to the /chargeForCookie path with your payment nonce as the value on the nonce key for a JSON body.",
       "required": true
     },
-    "API_BASE_PATH": {
-      "description": "For sandbox testing use \"https://connect.squareupsandbox.com\", for production use \"https://connect.squareup.com\".",
+    "ENVIRONMENT": {
+      "description": "For sandbox testing use \"SANDBOX\", for production use \"PRODUCTION\".",
       "required": true
     }
   },
