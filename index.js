@@ -20,8 +20,7 @@ const { paymentsApi, ordersApi, locationsApi, customersApi } = defaultClient;
 app.post('/chargeForCookie', async (request, response) => {
   const requestBody = request.body;
   try {
-    const listLocationsResponse = await locationsApi.listLocations();
-    const locationId = listLocationsResponse.result.locations[0].id;
+    const locationId =  process.env.LOCATION_ID;
     const createOrderRequest = getOrderRequest(locationId);
     const createOrderResponse = await ordersApi.createOrder(createOrderRequest);
 
@@ -33,6 +32,7 @@ app.post('/chargeForCookie', async (request, response) => {
       },
       orderId: createOrderResponse.result.order.id,
       autocomplete: true,
+      locationId,
     };
     const createPaymentResponse = await paymentsApi.createPayment(createPaymentRequest);
     console.log(createPaymentResponse.result.payment);
@@ -51,7 +51,7 @@ app.post('/chargeCustomerCard', async (request, response) => {
 
   try {
     const listLocationsResponse = await locationsApi.listLocations();
-    const locationId = listLocationsResponse.result.locations[0].id;
+    const locationId = process.env.LOCATION_ID;
     const createOrderRequest = getOrderRequest(locationId);
     const createOrderResponse = await ordersApi.createOrder(createOrderRequest);
     const createPaymentRequest = {
