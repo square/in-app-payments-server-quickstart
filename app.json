@@ -9,6 +9,10 @@
     "ENVIRONMENT": {
       "description": "For sandbox testing use \"SANDBOX\", for production use \"PRODUCTION\".",
       "required": true
+    },
+    "LOCATION_ID": {
+      "description": "The location to charge your payment to. You can find your location ID in the Locations section of the Square Developer Dashboard [https://developer.squareup.com/apps/]",
+      "required": true
     }
   },
   "scripts": {
