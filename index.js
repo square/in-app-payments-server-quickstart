@@ -105,7 +105,7 @@ function getOrderRequest(locationId) {
           quantity: "1",
           basePriceMoney: {
             amount: 100,
-            currency: "USD"
+            currency: "EUR"
           }
         }
       ]
